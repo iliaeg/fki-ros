@@ -1,0 +1,2 @@
+http://learn.voltbro.ru/ros-base
+https://wiki.ros.org/catkin/Tutorials/create_a_workspace
