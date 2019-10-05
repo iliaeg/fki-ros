@@ -1,2 +1,3 @@
 http://learn.voltbro.ru/ros-base
 https://wiki.ros.org/catkin/Tutorials/create_a_workspace
+http://wiki.ros.org/turtlesim/Tutorials/Moving%20in%20a%20Straight%20Line
