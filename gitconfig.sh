@@ -1,5 +1,7 @@
 #!/bin/bash
 
+USAGE="Usage: ./gitconfig.sh [-c|--create] [-r|--remove] [-i|--info] [-h|--help]"
+
 for i in "$@"
 do
 case $i in
@@ -8,29 +10,30 @@ case $i in
     git config --global user.name iliaeg
     git config --global user.email egorovilyak@yandex.ru
     shift # past argument=value
+    exit 0
     ;;
     -r|--remove)
     echo "--removing--"
     git config --global --unset-all user.name
     git config --global --unset-all user.email
     shift # past argument=value
+    exit 0
     ;;
     -i|--info)
     echo "--info--"
     git config --global --list
     shift # past argument=value
+    exit 0
     ;;
     -h|--help)
-    echo "Usage: ./gitconfig.sh [-c|--create] [-r|--remove] [-i|--info] [-h|--help]"
-    shift # past argument=value
+        echo $USAGE
+        exit 0
     ;;
-    # --default)
-    # DEFAULT=YES
-    # shift # past argument with no value
+    # *)
+    #     echo $USAGE
+    #     exit 0
     # ;;
-    *)
-          # unknown option
-    ;;
 esac
 done
  
+echo $USAGE
