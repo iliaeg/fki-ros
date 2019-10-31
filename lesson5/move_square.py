@@ -63,7 +63,7 @@ def stop_forward():
 def go_turn():
     global robot
     global vel_msg
-    vel_msg.angular.z = 0.2
+    vel_msg.angular.z = 0.6
     robot.turn = True
 
 def stop_turn():
@@ -88,7 +88,13 @@ def distance(x, y, x_start, y_start):
 pose = Pose(0, 0, 0)
 
 #distance to go forward in meters
-s = 0.2
+s = 0.4
+
+counter = 0
+
+finish = False
+
+velocity_publisher = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
 
 def update_pose(data):
     """Callback function which is called when a new message of type Pose is
@@ -97,6 +103,9 @@ def update_pose(data):
     # print "X = ",  msg.pose.pose.position.x
     # print "Y = ",  msg.pose.pose.position.y
     # print "theta = ", quaternion_to_theta(msg.pose.pose.orientation)
+    global counter, velocity_publisher
+    print "=== callback function === ", counter
+    counter += 1
     global robot, pose
     pose.x = data.pose.pose.position.x
     pose.y = data.pose.pose.position.y
@@ -109,18 +118,24 @@ def update_pose(data):
         if distance(pose.x, pose.y, robot.start_x, robot.start_y) >= s:
             stop_forward()
             robot.forward_counter += 1
-            # robot.init_state(pose.x, pose.y, pose.theta)
-            robot.is_init = False
+            robot.init_state(pose.x, pose.y, pose.theta)
+            # robot.is_init = False
             go_turn()
+            velocity_publisher.publish(vel_msg)
     if robot.turn:
-        if abs(pose.theta - robot.start_angle) >= 90:
+        cur_angle = abs(pose.theta - robot.start_angle)
+        if cur_angle >= 86 and cur_angle <= 94:
             stop_turn()
-            robot.turn_counter += 1
-            if robot.turn_counter == 4:
-                exit(0)
+            velocity_publisher.publish(vel_msg)
             # robot.init_state(pose.x, pose.y, pose.theta)
             robot.is_init = False
+            robot.turn_counter += 1
+            # if robot.turn_counter == 4:
+            #     global finish
+            #     finish = True
+            #     exit(0)
             go_forward()
+            velocity_publisher.publish(vel_msg)
 
     # print "X = ", pose.x #," ", round(pose.x, 4)
     # print "robot X = ", robot.start_x
@@ -129,20 +144,32 @@ def update_pose(data):
     print "theta = ", pose.theta
     print "robot theta = ", robot.start_angle
 
-pose_subscriber = rospy.Subscriber('/odom', Odometry, update_pose)
+
 
 def move():
     print "Hello Im robot"
     # Starts a new node
     # rospy.init_node('robot_turtle_node_1', anonymous=True)
-    velocity_publisher = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
+    global velocity_publisher
     t0 = rospy.Time.now().to_sec()
+    t1 = rospy.Time.now().to_sec()
+    pose_subscriber = rospy.Subscriber('/odom', Odometry, update_pose)
     go_forward()
-    while not rospy.is_shutdown():
+    # velocity_publisher.publish(vel_msg)
+    # while not rospy.is_shutdown():
+    while (t1 - t0) < 1:
         velocity_publisher.publish(vel_msg)
         t1 = rospy.Time.now().to_sec()
-        if (t1-t0 == 10):
-            rospy.signal_shutdown('Quit')
+        # if (t1-t0 == 10):
+
+    while not rospy.is_shutdown():
+        pass
+        #     rospy.signal_shutdown('Quit')
+    # global finish
+    # if finish:
+    #     stop_forward()
+    #     stop_turn()
+    #     velocity_publisher.publish(vel_msg)
 
 if __name__ == '__main__':
     # try:
