@@ -39,6 +39,25 @@ class RobotState:
         self.start_x = start_x
         self.start_y = start_y
         self.start_angle = start_angle
+        print "--- init_state ---"
+        print "start_x = ", start_x
+        print "start_y = ", start_y
+        print "start_angle = ", start_angle
+        print "------------------"
+
+    def init_xy(self, start_x, start_y):
+        self.start_x = start_x
+        self.start_y = start_y
+        print "--- init_xy ---"
+        print "start_x = ", start_x
+        print "start_y = ", start_y
+        print "------------------"
+
+    def init_theta(self, start_angle):
+        self.start_angle = start_angle
+        print "--- init_theta ---"
+        print "start_angle = ", start_angle
+        print "------------------"
 
 robot = RobotState(False, 0.0, 0.0, False, 0.0, False)
 
@@ -88,11 +107,12 @@ def distance(x, y, x_start, y_start):
 pose = Pose(0, 0, 0)
 
 #distance to go forward in meters
-s = 0.4
+s = 0.2
 
 counter = 0
 
 finish = False
+cycle = False
 
 velocity_publisher = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
 
@@ -106,34 +126,48 @@ def update_pose(data):
     global counter, velocity_publisher
     print "=== callback function === ", counter
     counter += 1
-    global robot, pose
+    global robot, pose, cycle
     pose.x = data.pose.pose.position.x
     pose.y = data.pose.pose.position.y
-    pose.theta = quaternion_to_theta(data.pose.pose.orientation)
+    pose.theta = quaternion_to_theta(data.pose.pose.orientation) + 180
+    if cycle:
+        pose.theta += 360
     if not robot.is_init:
         robot.init_state(pose.x, pose.y, pose.theta)
         robot.is_init = True
     global s
     if robot.forward:
-        if distance(pose.x, pose.y, robot.start_x, robot.start_y) >= s:
+        dist = distance(pose.x, pose.y, robot.start_x, robot.start_y)
+        print "x = ", pose.x, " y = ", pose.y
+        print "distance = ", dist
+        if dist >= s:
             stop_forward()
-            robot.forward_counter += 1
-            robot.init_state(pose.x, pose.y, pose.theta)
+            velocity_publisher.publish(vel_msg)
+
+            # robot.forward_counter += 1
+            robot.init_theta(pose.theta)
             # robot.is_init = False
             go_turn()
             velocity_publisher.publish(vel_msg)
     if robot.turn:
+        if pose.theta > 357 and pose.theta < 360:
+            cycle = True
         cur_angle = abs(pose.theta - robot.start_angle)
-        if cur_angle >= 86 and cur_angle <= 94:
+        print "pose.theta = ", pose.theta
+        print "cur_angle = ", cur_angle
+        if cur_angle > 90.0:# and cur_angle <= 94:
             stop_turn()
             velocity_publisher.publish(vel_msg)
+
             # robot.init_state(pose.x, pose.y, pose.theta)
-            robot.is_init = False
+            # robot.is_init = False
             robot.turn_counter += 1
-            # if robot.turn_counter == 4:
-            #     global finish
-            #     finish = True
-            #     exit(0)
+            if robot.turn_counter == 4:
+                # global finish
+                # finish = True
+                exit(0)
+            
+            robot.init_xy(pose.x, pose.y)
             go_forward()
             velocity_publisher.publish(vel_msg)
 
@@ -141,8 +175,9 @@ def update_pose(data):
     # print "robot X = ", robot.start_x
     # print "Y = ", pose.y #," ", round(pose.y, 4)
     # print "robot Y = ", robot.start_y
-    print "theta = ", pose.theta
-    print "robot theta = ", robot.start_angle
+
+    # print "theta = ", pose.theta
+    # print "robot theta = ", robot.start_angle
 
 
 
