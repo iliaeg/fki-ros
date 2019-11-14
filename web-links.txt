@@ -2,3 +2,4 @@ http://learn.voltbro.ru/ros-base
 https://wiki.ros.org/catkin/Tutorials/create_a_workspace
 http://wiki.ros.org/turtlesim/Tutorials/Moving%20in%20a%20Straight%20Line
 https://answers.ros.org/question/10697/how-to-subscribe-to-odom-properly-in-python/
+http://wiki.ros.org/gazebo_ros_pkgs
