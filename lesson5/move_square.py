@@ -9,6 +9,8 @@ from nav_msgs.msg import Odometry
 # Импортируем обьект для работы с движением
 from geometry_msgs.msg import Twist, Point
 
+rospy.init_node('move_square_node', anonymous=True)
+
 def quaternion_to_theta(orientation):
 
     t1 = +2.0 * (orientation.w * orientation.z + orientation.x * orientation.y)
@@ -23,6 +25,9 @@ vel_msg.linear.z = 0
 vel_msg.angular.x = 0
 vel_msg.angular.y = 0
 vel_msg.angular.z = 0
+
+rate = rospy.Rate(1)
+rate_odom = rospy.Rate(20000)
 
 class RobotState:
     def __init__(self, forward, start_x, start_y, turn, start_angle, is_init):
@@ -107,7 +112,7 @@ def distance(x, y, x_start, y_start):
 pose = Pose(0, 0, 0)
 
 #distance to go forward in meters
-s = 0.2
+s = 0.3
 
 counter = 0
 
@@ -138,8 +143,8 @@ def update_pose(data):
     global s
     if robot.forward:
         dist = distance(pose.x, pose.y, robot.start_x, robot.start_y)
-        print "x = ", pose.x, " y = ", pose.y
-        print "distance = ", dist
+        # print "x = ", pose.x, " y = ", pose.y
+        # print "distance = ", dist
         if dist >= s:
             stop_forward()
             velocity_publisher.publish(vel_msg)
@@ -153,9 +158,9 @@ def update_pose(data):
         if pose.theta > 357 and pose.theta < 360:
             cycle = True
         cur_angle = abs(pose.theta - robot.start_angle)
-        print "pose.theta = ", pose.theta
-        print "cur_angle = ", cur_angle
-        if cur_angle > 90.0:# and cur_angle <= 94:
+        # print "pose.theta = ", pose.theta
+        # print "cur_angle = ", cur_angle
+        if cur_angle > 84.5 and cur_angle <= 91.0:
             stop_turn()
             velocity_publisher.publish(vel_msg)
 
@@ -170,6 +175,8 @@ def update_pose(data):
             robot.init_xy(pose.x, pose.y)
             go_forward()
             velocity_publisher.publish(vel_msg)
+
+    # rate_odom.sleep()
 
     # print "X = ", pose.x #," ", round(pose.x, 4)
     # print "robot X = ", robot.start_x
@@ -192,12 +199,14 @@ def move():
     go_forward()
     # velocity_publisher.publish(vel_msg)
     # while not rospy.is_shutdown():
-    while (t1 - t0) < 1:
-        velocity_publisher.publish(vel_msg)
-        t1 = rospy.Time.now().to_sec()
-        # if (t1-t0 == 10):
+    # while (t1 - t0) < 1:
+    #     velocity_publisher.publish(vel_msg)
+    #     t1 = rospy.Time.now().to_sec()
+    #     # if (t1-t0 == 10):
 
     while not rospy.is_shutdown():
+        velocity_publisher.publish(vel_msg)
+        rate.sleep()
         pass
         #     rospy.signal_shutdown('Quit')
     # global finish
@@ -210,7 +219,7 @@ if __name__ == '__main__':
     # try:
     # begin()
     # make node
-    rospy.init_node('ilia_odometry', anonymous=True)
+    # rospy.init_node('ilia_odometry', anonymous=True)
     # sub = rospy.Subscriber('odom', Odometry, move)
     # #Testing our function
     move()
