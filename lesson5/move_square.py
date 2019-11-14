@@ -107,8 +107,7 @@ def distance(x, y, x_start, y_start):
 # # # Преобразование из кватерниона в углы Эйлера
 # # euler = euler_from_quaternion(quaternion)
 
-# A subscriber to the topic '/turtle1/pose'. self.update_pose is called
-# when a message of type Pose is received.
+# class to store pose
 pose = Pose(0, 0, 0)
 
 #distance to go forward in meters
@@ -149,9 +148,7 @@ def update_pose(data):
             stop_forward()
             velocity_publisher.publish(vel_msg)
 
-            # robot.forward_counter += 1
             robot.init_theta(pose.theta)
-            # robot.is_init = False
             go_turn()
             velocity_publisher.publish(vel_msg)
     if robot.turn:
@@ -164,12 +161,8 @@ def update_pose(data):
             stop_turn()
             velocity_publisher.publish(vel_msg)
 
-            # robot.init_state(pose.x, pose.y, pose.theta)
-            # robot.is_init = False
             robot.turn_counter += 1
             if robot.turn_counter == 4:
-                # global finish
-                # finish = True
                 exit(0)
             
             robot.init_xy(pose.x, pose.y)
@@ -190,37 +183,20 @@ def update_pose(data):
 
 def move():
     print "Hello Im robot"
-    # Starts a new node
-    # rospy.init_node('robot_turtle_node_1', anonymous=True)
+
     global velocity_publisher
     t0 = rospy.Time.now().to_sec()
     t1 = rospy.Time.now().to_sec()
     pose_subscriber = rospy.Subscriber('/odom', Odometry, update_pose)
-    go_forward()
-    # velocity_publisher.publish(vel_msg)
-    # while not rospy.is_shutdown():
-    # while (t1 - t0) < 1:
-    #     velocity_publisher.publish(vel_msg)
-    #     t1 = rospy.Time.now().to_sec()
-    #     # if (t1-t0 == 10):
+    go_forward())
 
     while not rospy.is_shutdown():
         velocity_publisher.publish(vel_msg)
         rate.sleep()
         pass
-        #     rospy.signal_shutdown('Quit')
-    # global finish
-    # if finish:
-    #     stop_forward()
-    #     stop_turn()
-    #     velocity_publisher.publish(vel_msg)
 
 if __name__ == '__main__':
     # try:
-    # begin()
-    # make node
-    # rospy.init_node('ilia_odometry', anonymous=True)
-    # sub = rospy.Subscriber('odom', Odometry, move)
     # #Testing our function
     move()
     # except rospy.ROSInterruptException: pass
