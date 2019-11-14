@@ -188,7 +188,7 @@ def move():
     t0 = rospy.Time.now().to_sec()
     t1 = rospy.Time.now().to_sec()
     pose_subscriber = rospy.Subscriber('/odom', Odometry, update_pose)
-    go_forward())
+    go_forward()
 
     while not rospy.is_shutdown():
         velocity_publisher.publish(vel_msg)
